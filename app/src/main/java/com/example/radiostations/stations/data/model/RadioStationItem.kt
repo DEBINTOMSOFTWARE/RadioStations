@@ -1,7 +1,7 @@
-package com.example.radiostations.stations.domain.model
+package com.example.radiostations.stations.data.model
 
-data class RadioStationEntity(
-    //    val bitrate: Int?,
+data class RadioStationItem(
+//    val bitrate: Int?,
 //    val changeuuid: String?,
 //    val clickcount: Int?,
 //    val clicktimestamp: String?,
