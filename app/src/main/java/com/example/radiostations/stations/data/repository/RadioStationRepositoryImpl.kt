@@ -5,13 +5,14 @@ import com.example.radiostations.core.utils.Resource
 import com.example.radiostations.stations.data.model.RadioStationItem
 import com.example.radiostations.stations.domain.model.RadioStationEntity
 import com.example.radiostations.stations.domain.repository.RadioStationRepository
-import com.example.radiostations.stations.framework.apiservice.RadioStationApiService
+import com.example.radiostations.stations.framework.apiservice.ApiService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import okio.IOException
+import javax.inject.Inject
 
 
-class RadioStationRepositoryImpl(private val apiService: RadioStationApiService) : RadioStationRepository {
+class RadioStationRepositoryImpl @Inject constructor(private val apiService: ApiService) : RadioStationRepository {
      private var cachedStations: List<RadioStationEntity>? = null
 
     override fun getStations(offset: Int, limit: Int): Flow<Resource<List<RadioStationEntity>>> = flow {

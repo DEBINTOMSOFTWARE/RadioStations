@@ -3,7 +3,7 @@ package com.example.radiostations.stations.data.repository
 import com.example.radiostations.core.utils.Resource
 import com.example.radiostations.stations.data.model.RadioStationItem
 import com.example.radiostations.stations.domain.repository.RadioStationRepository
-import com.example.radiostations.stations.framework.apiservice.RadioStationApiService
+import com.example.radiostations.stations.framework.apiservice.ApiService
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.flow.toList
@@ -16,7 +16,7 @@ import kotlin.test.assertTrue
 
 class RadioStationRepositoryImplTest {
 
-    private lateinit var apiService: RadioStationApiService
+    private lateinit var apiService: ApiService
     private lateinit var repository: RadioStationRepository
 
     @Before
