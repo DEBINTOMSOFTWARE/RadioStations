@@ -1,38 +1,51 @@
 package com.example.radiostations.stations.presentation.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.Divider
-import androidx.compose.material.ListItem
+import androidx.compose.material.TopAppBar
+import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
+import com.example.radiostations.Destination
 import com.example.radiostations.core.utils.Resource
 import com.example.radiostations.stations.domain.model.RadioStationEntity
 import com.example.radiostations.stations.domain.model.StationAvailabilityEntity
+import com.example.radiostations.core.presentaion.components.BodySmallText
+import com.example.radiostations.core.presentaion.components.BodyText
+import com.example.radiostations.core.presentaion.components.HeaderLargeText
 import com.example.radiostations.stations.presentation.viewmodel.RadioStationViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RadioStationScreen(
-    radioStationViewModel: RadioStationViewModel
+    radioStationViewModel: RadioStationViewModel,
+    navController: NavHostController
 ) {
     val stationState = radioStationViewModel.stations.collectAsState().value
     val availabilityState = radioStationViewModel.availability.collectAsState().value
@@ -47,38 +60,25 @@ fun RadioStationScreen(
             }
     }
     Scaffold(
-        content = { padding ->
-
-            Column {
-                StationAvailability1(availabilityState, padding)
-                RadioStationList(stationState, padding, listState)
+        topBar = {
+                TopAppBar(
+                    modifier = Modifier
+                        .height(60.dp)
+                        .semantics { contentDescription = "Radio Stations" },
+                    title = { HeaderLargeText(text = "Radio Stations") },
+                    backgroundColor = MaterialTheme.colorScheme.primary,
+                )
+        },
+    ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.inverseOnSurface),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                RadioStationList(stationState, padding, listState, navController)
             }
-        }
-    )
-}
-
-@Composable
-fun StationAvailability1(
-    result: Resource<List<StationAvailabilityEntity>>,
-    padding: PaddingValues
-) {
-    when(result) {
-        is Resource.Success -> {
-            LazyColumn {
-                items(result.data!!) {
-                    println("Availability: $it")
-                }
-            }
-        }
-        is Resource.Error -> {
-            println("Error occurred")
-        }
-        is Resource.Loading -> {
-            println("Loading...")
-        }
-        is Resource.Initial -> {
-
-        }
     }
 }
 
@@ -86,60 +86,65 @@ fun StationAvailability1(
 fun RadioStationList(
     result: Resource<List<Pair<RadioStationEntity, List<StationAvailabilityEntity>>>>,
     padding: PaddingValues,
-    listState: LazyListState
+    listState: LazyListState,
+    navController: NavHostController
 ) {
     Box(modifier = Modifier.padding(padding)) {
         when (result) {
             is Resource.Success -> {
-                LazyColumn(modifier = Modifier.fillMaxSize(),
-                    state = listState) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .semantics { contentDescription = "Radio Stations List" },
+                    state = listState
+                ) {
                     items(result.data!!) { station ->
-                       // println("Result Data:: ${result.data}")
-                        RadioStationRow(station)
+                        RadioStationRow(station, navController)
                     }
-                    item { 
+                    item {
                         if (result.data.isNotEmpty()) {
-                           CircularProgressIndicator(modifier = Modifier
-                               .align(Alignment.Center)
-                               .padding(16.dp))
+                            CircularProgressIndicator(
+                                modifier = Modifier.semantics { contentDescription = "Loading Progress" }
+                            )
                         }
                     }
                 }
             }
 
             is Resource.Loading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-            is Resource.Error -> Text(
-                "Error: ${result.message}",
-                modifier = Modifier.align(Alignment.Center)
+            is Resource.Error -> BodyText(
+                text = "Error: ${(result).message}",
             )
 
-            is Resource.Initial -> Text(
-                "Please wait...",
-                modifier = Modifier.align(Alignment.Center)
-            )
+            is Resource.Initial -> {}
         }
     }
 }
 
 @Composable
-fun RadioStationRow(stationPair: Pair<RadioStationEntity, List<StationAvailabilityEntity>>) {
+fun RadioStationRow(stationPair: Pair<RadioStationEntity, List<StationAvailabilityEntity>>, navController: NavHostController) {
     val (station, availability) = stationPair
-    Column(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
+            .clickable {
+                if (station.stationuuid != null) {
+                    navController.navigate(
+                        Destination.StationAvailabilityScreen.createRoute(
+                            stationUuid = station.stationuuid
+                        )
+                    )
+                }
+            },
     ) {
-        Text(text = "Station: ${station.name}", style = MaterialTheme.typography.headlineSmall)
-        Text(text = "Country: ${station.country}", style = MaterialTheme.typography.headlineSmall)
-        Text(
-            text = "Available in: ${availability.size} regions",
-            style = MaterialTheme.typography.bodySmall
-        )
-        println("Availability : ${availability.size}")
-        availability.forEach { availabilityItem ->
-            val status = if (availabilityItem.ok == 1) "Online" else "Offline"
-            Text(text = "Region: ${availabilityItem.name} - $status")
+        Column(modifier = Modifier.padding(8.dp)) {
+            BodyText(text = "Station: ${station.name}")
+            BodyText(text = "Country: ${station.country}")
+            BodyText(text = "State: ${station.state}")
+            BodySmallText(
+                text = "Available in: ${availability.size} regions",
+            )
         }
-        Divider()
     }
 }

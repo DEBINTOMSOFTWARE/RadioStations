@@ -16,7 +16,7 @@ class GetRadioStationImpl @Inject constructor(private val repository: RadioStati
         return repository.getStationAvailability(stationUuid)
     }
 
-    override fun execute(
+    override fun getStationWithAvailability(
         offset: Int,
         limit: Int
     ): Flow<Resource<List<Pair<RadioStationEntity, List<StationAvailabilityEntity>>>>> {

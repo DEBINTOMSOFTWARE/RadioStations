@@ -13,7 +13,7 @@ fun RadioStationsTheme(
     val colors = if (useDarkTheme) DarkThemeColors else LightThemeColors
 
     MaterialTheme(
-        colorScheme = colors,
+        colorScheme = MaterialTheme.colorScheme,
         typography = Typography,
         content = content
     )

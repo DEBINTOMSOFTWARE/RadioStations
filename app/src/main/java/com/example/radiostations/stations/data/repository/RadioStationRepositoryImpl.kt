@@ -53,6 +53,7 @@ class RadioStationRepositoryImpl @Inject constructor(private val apiService: Api
                 async {
                     println("Fetching availability for station: ${station.stationuuid}")
                     val availabilityResource = getStationAvailability(station.stationuuid!!).first()
+                    println("Availability Resource:: $availabilityResource")
                     if (availabilityResource is Resource.Success) {
                         println("Availability for ${station.stationuuid}: ${availabilityResource.data}")
                         station to availabilityResource.data.orEmpty()

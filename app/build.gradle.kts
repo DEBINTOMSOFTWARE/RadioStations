@@ -74,6 +74,8 @@ dependencies {
     implementation(libs.convertor.gson)
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
+
+    testImplementation("app.cash.turbine:turbine:0.8.0")
     testImplementation(libs.junit)
     testImplementation(libs.kotlin.test.junit)
     testImplementation(libs.mockk)

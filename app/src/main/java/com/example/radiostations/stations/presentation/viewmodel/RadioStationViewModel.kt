@@ -29,34 +29,19 @@ class RadioStationViewModel @Inject constructor(private val getRadioStation: Get
 
     init {
         getStations()
-        //getStationAvailability("86f80f48-0bcd-4569-9f28-f349c53dde68")
     }
 
-    fun getStationAvailability(stationUuid: String) {
-        if (isLoading) return
-        isLoading = true
-
-        viewModelScope.launch {
-            getRadioStation.getStationAvailability(stationUuid).collect {
-               when(it) {
-                   is Resource.Success -> {
-                       val availability = it.data ?: emptyList()
-                       _availability.value = Resource.Success(availability)
-                   }
-                   is Resource.Error -> {
-                       _availability.value = Resource.Error("Failed to fetch availability")
-                   }
-                   is Resource.Loading -> {
-                       _availability.value = Resource.Loading
-                   }
-                   is Resource.Initial -> {
-
-                   }
-               }
-            }
-        }
-
-    }
+//    fun getStationAvailability(stationUuid: String) {
+//        if (isLoading) return
+//        isLoading = true
+//        _availability.value = Resource.Loading
+//        viewModelScope.launch {
+//            getRadioStation.getStationAvailability(stationUuid).collect { result ->
+//               _availability.value = result
+//            }
+//        }
+//
+//    }
 
     fun getStations() {
         if (isLoading) return
@@ -64,10 +49,11 @@ class RadioStationViewModel @Inject constructor(private val getRadioStation: Get
 
         viewModelScope.launch {
             val offset = currentPage * pageSize
-            getRadioStation.execute(offset, pageSize).collect { result ->
+            getRadioStation.getStationWithAvailability(offset, pageSize).collect { result ->
                 when(result) {
                     is Resource.Success -> {
                         val newStations = result.data ?: emptyList()
+                        println("New Stations:: $newStations")
                         if (newStations.isNotEmpty()) {
                             currentStations.addAll(newStations)
                             _stations.value = Resource.Success(currentStations)
