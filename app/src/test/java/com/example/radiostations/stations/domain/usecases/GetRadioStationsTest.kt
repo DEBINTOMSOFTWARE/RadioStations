@@ -1,7 +1,9 @@
 package com.example.radiostations.stations.domain.usecases
 
 import com.example.radiostations.core.utils.Resource
+import com.example.radiostations.stations.data.model.StationAvailability
 import com.example.radiostations.stations.domain.model.RadioStationEntity
+import com.example.radiostations.stations.domain.model.StationAvailabilityEntity
 import com.example.radiostations.stations.domain.repository.RadioStationRepository
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -61,6 +63,60 @@ class GetRadioStationsTest {
         }
         coEvery {repository.getStations(0,10) } returns mockError
         val flow = getRadioStation.getStations(0,10)
+
+        flow.collect{result ->
+            if(result is Resource.Error) {
+                assertEquals((result).message, "Couldn't reach server. Check your internet connection")
+            }
+        }
+    }
+
+
+    @Test
+    fun getStationAvailability_fetches_data_from_repository() = runTest {
+        val mockStationsAvailabilities: Flow<Resource<List<StationAvailabilityEntity>>> = flow {
+            emit(Resource.Success(listOf(
+                StationAvailabilityEntity(
+                    name = "Station1",
+                    ok =  1,
+                    description = "description1"
+                ),
+                StationAvailabilityEntity(
+                    name = "Station2",
+                    ok =  0,
+                    description = "description2"
+                )
+            )))
+        }
+
+        coEvery {
+            repository.getStationAvailability("id1")
+        } returns mockStationsAvailabilities
+
+        val flow = getRadioStation.getStationAvailability("id1")
+
+        var resultList: List<StationAvailabilityEntity>? = null
+        flow.collect { result ->
+            if (result is Resource.Success) {
+                resultList = result.data
+            }
+        }
+
+        assertEquals(2, resultList?.size)
+        assertEquals("Station1", resultList?.first()?.name)
+        assertEquals(1, resultList?.first()?.ok)
+    }
+
+
+    @Test
+    fun getStationsAvailability_should_return_error_when_api_fails() = runTest {
+        val mockError: Flow<Resource<List<StationAvailabilityEntity>>> = flow {
+            emit(Resource.Error(
+                "Couldn't reach server. Check your internet connection"
+            ))
+        }
+        coEvery {repository.getStationAvailability("id1") } returns mockError
+        val flow = getRadioStation.getStationAvailability("id1")
 
         flow.collect{result ->
             if(result is Resource.Error) {

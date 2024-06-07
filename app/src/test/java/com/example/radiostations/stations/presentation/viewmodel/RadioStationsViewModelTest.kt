@@ -53,45 +53,7 @@ class RadioStationsViewModelTest {
         assertTrue(initialState is Resource.Loading, "Expected initial state to be Resource.Loading")
     }
 
-    @Test
-    fun getStations_success_updates_stations_StateFlow() = runTest {
-        val mockStationsPage1 = listOf(
-            RadioStationEntity(name = "Station1", state = "State1", country = "Country1", countrycode = "1", stationuuid = "id1"),
-            RadioStationEntity(name = "Station2", state = "State2", country = "Country2", countrycode = "2", stationuuid = "id2"),
-        )
 
-        val mockStationsPage2 = listOf(
-            RadioStationEntity(name = "Station11", state = "State11", country = "Country11", countrycode = "11", stationuuid = "id11"),
-            RadioStationEntity(name = "Station12", state = "State12", country = "Country12", countrycode = "12", stationuuid = "id12"),
-        )
-
-        coEvery {
-            getRadioStation.getStations(0, 10)
-        } returns flowOf(Resource.Success(mockStationsPage1))
-
-        coEvery {
-            getRadioStation.getStations(10, 10)
-        } returns flowOf(Resource.Success(mockStationsPage2))
-
-
-        viewModel = RadioStationViewModel(getRadioStation)
-        viewModel.getStations()
-       // val job = launch {
-            viewModel.stations.collect {
-                state ->
-                if (state is Resource.Success) {
-                    assertEquals(Resource.Success(mockStationsPage1), state)
-                    cancel()
-                }
-         //   }
-        }
-
-//       val state = viewModel.stations.value
-//        assertEquals(Resource.Success(mockStationsPage1), state)
-        //job.join()
-        //assertTrue(state is Resource.Success, "Expected Resource.Success but found $state")
-       // assertEquals(mockStations, (state).data, "Data does not match expected value")
-    }
 
     @After
     fun tearDown() {

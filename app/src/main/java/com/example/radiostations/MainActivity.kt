@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
     private val stationsViewModel by viewModels<RadioStationViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        //enableEdgeToEdge()
         setContent {
             RadioStationsTheme {
                 Surface(
@@ -54,7 +54,7 @@ fun AppNavigation(
 ) {
     NavHost(navController = navController, startDestination = Destination.StationsScreen.route) {
         composable(Destination.StationsScreen.route) {
-            RadioStationScreen(navController = navController, radioStationViewModel = radioStationViewModel)
+            RadioStationScreen(radioStationViewModel = radioStationViewModel)
         }
     }
 }
