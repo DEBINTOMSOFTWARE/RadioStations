@@ -1,6 +1,7 @@
 package com.example.radiostations.di
 
 import android.content.Context
+import com.example.radiostations.core.framework.ConnectivityMonitor
 import com.example.radiostations.stations.framework.apiservice.ApiService
 import dagger.Module
 import dagger.Provides
@@ -20,6 +21,14 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
   private const val BASE_URL = "https://de1.api.radio-browser.info/"
+
+  @Provides
+  @Singleton
+  fun provideCertificatePinner(): CertificatePinner =
+    CertificatePinner.Builder()
+      .add("de1.api.radio-browser.info", "sha256/+pDuKtY5CXkMe5Yi/Ffp8gn/h4/pSHaTdBpky57QmIY=")
+      .build()
+
 
   @Provides
   @Singleton
@@ -49,12 +58,14 @@ object NetworkModule {
   @Provides
   @Singleton
   fun provideOkHttpClient(
+    certificatePinner: CertificatePinner,
     cache: Cache,
     onlineInterceptor: Interceptor,
     loggingInterceptor: HttpLoggingInterceptor
   ): OkHttpClient =
     OkHttpClient.Builder()
       .cache(cache)
+      .certificatePinner(certificatePinner)
       .addNetworkInterceptor(onlineInterceptor)
       .addInterceptor(loggingInterceptor)
       .build()
@@ -70,4 +81,9 @@ object NetworkModule {
   @Provides
   @Singleton
   fun provideApiService(retrofit: Retrofit): ApiService = retrofit.create(ApiService::class.java)
+
+  @Provides
+  @Singleton
+  fun provideConnectivityManager(@ApplicationContext context: Context) =
+    ConnectivityMonitor.getInstance(context)
 }

@@ -3,6 +3,7 @@ package com.example.radiostations.stations.presentation.viewmodel
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.example.radiostations.core.framework.ConnectivityMonitor
 import com.example.radiostations.core.utils.Resource
+import com.example.radiostations.stations.domain.model.StationAvailabilityEntity
 import com.example.radiostations.stations.domain.usecases.GetRadioStation
 import io.mockk.coEvery
 import io.mockk.mockk
@@ -18,10 +19,11 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 @ExperimentalCoroutinesApi
-class RadioStationsViewModelTest {
+class StationAvailabilityViewModelTest {
 
     @get:Rule
     val instantExecutorRule = InstantTaskExecutorRule()
@@ -30,7 +32,7 @@ class RadioStationsViewModelTest {
 
     private lateinit var getRadioStation: GetRadioStation
     private lateinit var connectivityMonitor: ConnectivityMonitor
-    private lateinit var viewModel: RadioStationViewModel
+    private lateinit var viewModel: StationAvailabilityViewModel
 
     @Before
     fun setUp() {
@@ -42,19 +44,43 @@ class RadioStationsViewModelTest {
     @Test
     fun initial_state_is_Resource_loading() = runTest {
         coEvery {
-            getRadioStation.getStationWithAvailability(0, 20)
+            getRadioStation.getStationAvailability("stationUuid")
         } returns flowOf(Resource.Loading)
 
-        viewModel = RadioStationViewModel(getRadioStation, connectivityMonitor)
-        viewModel.getStations()
+        viewModel = StationAvailabilityViewModel(getRadioStation, connectivityMonitor)
+        viewModel.getStationAvailability("stationUuid")
 
-        val initialState = viewModel.stations.value
+        val initialState = viewModel.availability.value
         assertTrue(
             initialState is Resource.Loading,
             "Expected initial state to be Resource.Loading"
         )
     }
 
+    @Test
+    fun getStationsAvailability_return_success() = runTest {
+        val mockAvailabilityResponse = listOf(
+            StationAvailabilityEntity(
+                name = "Station1",
+                ok = 1,
+                description = "description1"
+            ),
+            StationAvailabilityEntity(
+                name = "Station2",
+                ok = 0,
+                description = "description2"
+            )
+        )
+
+        coEvery {
+            getRadioStation.getStationAvailability("stationUuid")
+        } returns flowOf(Resource.Success(mockAvailabilityResponse))
+        viewModel = StationAvailabilityViewModel(getRadioStation, connectivityMonitor)
+        viewModel.getStationAvailability("stationUuid")
+
+        val state = viewModel.availability.value
+        assertEquals(Resource.Success(mockAvailabilityResponse), state)
+    }
 
     @After
     fun tearDown() {

@@ -14,5 +14,5 @@ interface ApiService {
     ): List<RadioStationItem>
 
     @GET("json/checks/{stationuuid}")
-    suspend fun getStationAvailability(@Path("stationuuid") stationUuid: String) : List<StationAvailability>
+    suspend fun getStationAvailability(@Path("stationuuid") stationUuid: String): List<StationAvailability>
 }

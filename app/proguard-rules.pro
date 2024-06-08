@@ -19,3 +19,47 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+# Keep all classes in the Jetpack Compose package
+-keep class androidx.compose.** { *; }
+
+# Keep classes that use Compose's @Composable annotation
+-keep @androidx.compose.runtime.Composable class * {
+    <methods>;
+}
+
+# Keep ViewModel classes to prevent issues with saved state
+-keep class * extends androidx.lifecycle.ViewModel {
+    <init>(...);
+}
+
+# Keep all classes used
+-keep class com.example.radiostations.core.framework.** { *;}
+-keep class com.example.radiostations.core.presentaion.components.** { *;}
+-keep class com.example.radiostations.core.utils.** { *;}
+
+-keep class com.example.radiostations.di.** { *;}
+
+-keep class com.example.radiostations.stations.data.model.** { *;}
+-keep class com.example.radiostations.stations.data.repository.** { *;}
+
+-keep class com.example.radiostations.stations.domain.model.** { *;}
+-keep class com.example.radiostations.stations.domain.repository.** { *;}
+-keep class com.example.radiostations.stations.domain.usecases.** { *;}
+
+-keep class com.example.radiostations.framework.apiservice.** { *;}
+
+-keep class com.example.radiostations.presentation.screens.** { *;}
+-keep class com.example.radiostations.presentation.viewmodel.** { *;}
+
+-keep class com.example.radiostations.MainActivity {
+    public <fields>;
+    public <methods>;
+}
+
+-keep class com.example.radiostations.data.model.**{
+ private <fields>;
+}
+
+-keep class com.example.radiostations.domain.model.**{
+ private <fields>;
+}

@@ -22,6 +22,7 @@ class ConnectivityMonitor private constructor(context: Context) : ConnectivityOb
                 super.onAvailable(network)
                 launch { send(ConnectivityObservable.Status.Available) }
             }
+
             override fun onLost(network: Network) {
                 super.onLost(network)
                 launch { send(ConnectivityObservable.Status.Unavailable) }

@@ -1,7 +1,6 @@
 package com.example.radiostations.stations.domain.usecases
 
 import com.example.radiostations.core.utils.Resource
-import com.example.radiostations.stations.data.model.StationAvailability
 import com.example.radiostations.stations.domain.model.RadioStationEntity
 import com.example.radiostations.stations.domain.model.StationAvailabilityEntity
 import com.example.radiostations.stations.domain.repository.RadioStationRepository

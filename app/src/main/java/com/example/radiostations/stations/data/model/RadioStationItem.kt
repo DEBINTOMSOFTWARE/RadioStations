@@ -6,5 +6,4 @@ data class RadioStationItem(
     val name: String?,
     val state: String?,
     val stationuuid: String?,
-
 )

@@ -74,8 +74,9 @@ dependencies {
     implementation(libs.convertor.gson)
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
+    implementation("com.squareup.inject:assisted-inject-annotations-dagger2:0.5.2")
+    kapt ("com.squareup.inject:assisted-inject-processor-dagger2:0.5.2")
 
-    testImplementation("app.cash.turbine:turbine:0.8.0")
     testImplementation(libs.junit)
     testImplementation(libs.kotlin.test.junit)
     testImplementation(libs.mockk)

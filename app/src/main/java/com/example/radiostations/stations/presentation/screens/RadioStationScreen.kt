@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,32 +24,40 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.radiostations.Destination
+import com.example.radiostations.core.framework.ConnectivityObservable
+import com.example.radiostations.core.presentaion.components.BodyLargeText
 import com.example.radiostations.core.utils.Resource
 import com.example.radiostations.stations.domain.model.RadioStationEntity
 import com.example.radiostations.stations.domain.model.StationAvailabilityEntity
-import com.example.radiostations.core.presentaion.components.BodySmallText
 import com.example.radiostations.core.presentaion.components.BodyText
 import com.example.radiostations.core.presentaion.components.HeaderLargeText
 import com.example.radiostations.stations.presentation.viewmodel.RadioStationViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RadioStationScreen(
     radioStationViewModel: RadioStationViewModel,
     navController: NavHostController
 ) {
+
     val stationState = radioStationViewModel.stations.collectAsState().value
-    val availabilityState = radioStationViewModel.availability.collectAsState().value
+    val networkAvailable =
+        radioStationViewModel.networkAvailable.observe()
+            .collectAsState(ConnectivityObservable.Status.Available)
     val listState = rememberLazyListState()
 
     LaunchedEffect(listState) {
@@ -61,25 +70,42 @@ fun RadioStationScreen(
     }
     Scaffold(
         topBar = {
-                TopAppBar(
-                    modifier = Modifier
-                        .height(60.dp)
-                        .semantics { contentDescription = "Radio Stations" },
-                    title = { HeaderLargeText(text = "Radio Stations") },
-                    backgroundColor = MaterialTheme.colorScheme.primary,
-                )
+            TopAppBar(
+                modifier = Modifier
+                    .height(60.dp)
+                    .semantics { contentDescription = "Radio Stations" },
+                title = { HeaderLargeText(text = "Radio Stations") },
+                backgroundColor = MaterialTheme.colorScheme.primary,
+            )
         },
     ) { padding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.inverseOnSurface),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                RadioStationList(stationState, padding, listState, navController)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.inverseOnSurface),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            if (networkAvailable.value == ConnectivityObservable.Status.Unavailable) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.Red),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    BodyLargeText(
+                        text = "Network unavailable",
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
             }
+
+            RadioStationList(stationState, padding, listState, navController)
+        }
     }
+
 }
 
 @Composable
@@ -104,14 +130,20 @@ fun RadioStationList(
                     item {
                         if (result.data.isNotEmpty()) {
                             CircularProgressIndicator(
-                                modifier = Modifier.semantics { contentDescription = "Loading Progress" }
+                                modifier = Modifier.semantics {
+                                    contentDescription = "Loading Progress"
+                                }
                             )
                         }
                     }
                 }
             }
 
-            is Resource.Loading -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+            is Resource.Loading -> CircularProgressIndicator(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .semantics { contentDescription = "Loading Progress" })
+
             is Resource.Error -> BodyText(
                 text = "Error: ${(result).message}",
             )
@@ -122,7 +154,10 @@ fun RadioStationList(
 }
 
 @Composable
-fun RadioStationRow(stationPair: Pair<RadioStationEntity, List<StationAvailabilityEntity>>, navController: NavHostController) {
+fun RadioStationRow(
+    stationPair: Pair<RadioStationEntity, List<StationAvailabilityEntity>>,
+    navController: NavHostController
+) {
     val (station, availability) = stationPair
     Card(
         modifier = Modifier
@@ -136,15 +171,19 @@ fun RadioStationRow(stationPair: Pair<RadioStationEntity, List<StationAvailabili
                         )
                     )
                 }
+            }
+            .semantics {
+                role = Role.Button
+                contentDescription = "Radio Station ${station.name},"
             },
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
-            BodyText(text = "Station: ${station.name}")
+            BodyText(text = "Station: ${station.name?.trim()}")
             BodyText(text = "Country: ${station.country}")
             BodyText(text = "State: ${station.state}")
-            BodySmallText(
-                text = "Available in: ${availability.size} regions",
-            )
+//            BodySmallText(
+//                text = "Available in: ${availability.size} regions",
+//            )
         }
     }
 }

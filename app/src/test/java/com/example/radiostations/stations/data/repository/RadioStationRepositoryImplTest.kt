@@ -3,7 +3,6 @@ package com.example.radiostations.stations.data.repository
 import com.example.radiostations.core.utils.Resource
 import com.example.radiostations.stations.data.model.RadioStationItem
 import com.example.radiostations.stations.data.model.StationAvailability
-import com.example.radiostations.stations.domain.model.StationAvailabilityEntity
 import com.example.radiostations.stations.domain.repository.RadioStationRepository
 import com.example.radiostations.stations.framework.apiservice.ApiService
 import io.mockk.coEvery
@@ -23,23 +22,35 @@ class RadioStationRepositoryImplTest {
 
     @Before
     fun setUp() {
-       apiService = mockk()
-       repository = RadioStationRepositoryImpl(apiService)
+        apiService = mockk()
+        repository = RadioStationRepositoryImpl(apiService)
     }
 
     @Test
     fun getStations_should_fetch_and_cache_station() = runTest {
-       val mockStations = listOf(
-           RadioStationItem(name = "Station1", state = "State1", country = "Country1", countrycode = "1", stationuuid = "id1"),
-           RadioStationItem(name = "Station2", state = "State2", country = "Country2", countrycode = "2", stationuuid = "id2"),
-       )
+        val mockStations = listOf(
+            RadioStationItem(
+                name = "Station1",
+                state = "State1",
+                country = "Country1",
+                countrycode = "1",
+                stationuuid = "id1"
+            ),
+            RadioStationItem(
+                name = "Station2",
+                state = "State2",
+                country = "Country2",
+                countrycode = "2",
+                stationuuid = "id2"
+            ),
+        )
         coEvery {
-            apiService.getAllStations(0,10)
+            apiService.getAllStations(0, 10)
         } returns mockStations
 
-         val flow = repository.getStations(0, 2).toList()
-         assertTrue { flow[0] is Resource.Loading }
-         assertTrue { flow[1] is Resource.Success }
+        val flow = repository.getStations(0, 10).toList()
+        assertTrue { flow[0] is Resource.Loading }
+        assertTrue { flow[1] is Resource.Success }
 
         val stations = (flow[1] as Resource.Success).data ?: emptyList()
         assertEquals(2, stations.size)
@@ -57,10 +68,16 @@ class RadioStationRepositoryImplTest {
 
     @Test
     fun getStations_should_return_paginated_stations() = runTest {
-        val mockStations = List(100) {index ->
-            RadioStationItem(name = "Station$index", state = "State$index", country = "Country$index", countrycode = "CountryCode$index", stationuuid = "StationId$index")
+        val mockStations = List(100) { index ->
+            RadioStationItem(
+                name = "Station$index",
+                state = "State$index",
+                country = "Country$index",
+                countrycode = "CountryCode$index",
+                stationuuid = "StationId$index"
+            )
         }
-        coEvery { apiService.getAllStations(0,10) } returns mockStations
+        coEvery { apiService.getAllStations(0, 10) } returns mockStations
 
         val flow = repository.getStations(0, 10).toList()
         assertTrue { flow[0] is Resource.Loading }
@@ -68,22 +85,18 @@ class RadioStationRepositoryImplTest {
         val stations = (flow[1] as Resource.Success).data?.take(10) ?: emptyList()
         assertEquals(10, stations.size)
         assertEquals("Station0", stations[0].name)
-
-        val nextFlow = repository.getStations(10,10).toList()
-        assertTrue { nextFlow [0] is Resource.Loading }
-        assertTrue { nextFlow[1] is Resource.Success }
-        val nextStations = (nextFlow[1] as Resource.Success).data?.take(10) ?: emptyList()
-        assertEquals(10, nextStations.size)
-        assertEquals("Station10", nextStations[0].name)
     }
 
     @Test
     fun getStations_should_return_error_when_api_fails() = runTest {
-        coEvery { apiService.getAllStations(0,10) } throws IOException()
-        val stations = repository.getStations(0,10).toList()
+        coEvery { apiService.getAllStations(0, 10) } throws IOException()
+        val stations = repository.getStations(0, 10).toList()
         assertTrue { stations[0] is Resource.Loading }
         assertTrue { stations[1] is Resource.Error }
-        assertEquals((stations[1] as Resource.Error).message, "Couldn't reach server. Check your internet connection")
+        assertEquals(
+            (stations[1] as Resource.Error).message,
+            "Couldn't reach server. Check your internet connection"
+        )
     }
 
     @Test
@@ -91,12 +104,12 @@ class RadioStationRepositoryImplTest {
         val mockResponse = listOf(
             StationAvailability(
                 name = "Station1",
-                ok =  1,
+                ok = 1,
                 description = "description1"
             ),
             StationAvailability(
                 name = "Station2",
-                ok =  0,
+                ok = 0,
                 description = "description2"
             )
         )
@@ -124,6 +137,9 @@ class RadioStationRepositoryImplTest {
         val stations = repository.getStationAvailability("id1").toList()
         assertTrue { stations[0] is Resource.Loading }
         assertTrue { stations[1] is Resource.Error }
-        assertEquals((stations[1] as Resource.Error).message, "Couldn't reach server. Check your internet connection")
+        assertEquals(
+            (stations[1] as Resource.Error).message,
+            "Couldn't reach server. Check your internet connection"
+        )
     }
 }

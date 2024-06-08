@@ -7,9 +7,10 @@ import com.example.radiostations.stations.domain.repository.RadioStationReposito
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
-class GetRadioStationImpl @Inject constructor(private val repository: RadioStationRepository) : GetRadioStation{
+class GetRadioStationImpl @Inject constructor(private val repository: RadioStationRepository) :
+    GetRadioStation {
     override fun getStations(offset: Int, limit: Int): Flow<Resource<List<RadioStationEntity>>> {
-      return repository.getStations(offset, limit)
+        return repository.getStations(offset, limit)
     }
 
     override fun getStationAvailability(stationUuid: String): Flow<Resource<List<StationAvailabilityEntity>>> {
@@ -20,6 +21,6 @@ class GetRadioStationImpl @Inject constructor(private val repository: RadioStati
         offset: Int,
         limit: Int
     ): Flow<Resource<List<Pair<RadioStationEntity, List<StationAvailabilityEntity>>>>> {
-       return repository.getStationsWithAvailability(offset, limit)
+        return repository.getStationsWithAvailability(offset, limit)
     }
 }

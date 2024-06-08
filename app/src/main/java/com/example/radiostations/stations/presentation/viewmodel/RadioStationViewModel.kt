@@ -2,6 +2,7 @@ package com.example.radiostations.stations.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.radiostations.core.framework.ConnectivityMonitor
 import com.example.radiostations.core.utils.Resource
 import com.example.radiostations.stations.domain.model.RadioStationEntity
 import com.example.radiostations.stations.domain.model.StationAvailabilityEntity
@@ -10,38 +11,30 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.security.cert.CertPathValidatorException.Reason
 import javax.inject.Inject
 
 @HiltViewModel
-class RadioStationViewModel @Inject constructor(private val getRadioStation: GetRadioStation) : ViewModel() {
+class RadioStationViewModel @Inject constructor(
+    private val getRadioStation: GetRadioStation,
+    connectivityMonitor: ConnectivityMonitor
+) : ViewModel() {
 
-    private val _stations = MutableStateFlow<Resource<List<Pair<RadioStationEntity, List<StationAvailabilityEntity>>>>>(Resource.Initial())
+    private val _stations =
+        MutableStateFlow<Resource<List<Pair<RadioStationEntity, List<StationAvailabilityEntity>>>>>(
+            Resource.Initial()
+        )
     val stations = _stations.asStateFlow()
 
-    private val _availability = MutableStateFlow<Resource<List<StationAvailabilityEntity>>>(Resource.Initial())
-    val availability = _availability.asStateFlow()
-
-    private val currentStations = mutableListOf<Pair<RadioStationEntity, List<StationAvailabilityEntity>>>()
+    private val currentStations =
+        mutableListOf<Pair<RadioStationEntity, List<StationAvailabilityEntity>>>()
     private var currentPage = 0
     private val pageSize = 20
     private var isLoading = false
+    val networkAvailable = connectivityMonitor
 
     init {
         getStations()
     }
-
-//    fun getStationAvailability(stationUuid: String) {
-//        if (isLoading) return
-//        isLoading = true
-//        _availability.value = Resource.Loading
-//        viewModelScope.launch {
-//            getRadioStation.getStationAvailability(stationUuid).collect { result ->
-//               _availability.value = result
-//            }
-//        }
-//
-//    }
 
     fun getStations() {
         if (isLoading) return
@@ -50,7 +43,7 @@ class RadioStationViewModel @Inject constructor(private val getRadioStation: Get
         viewModelScope.launch {
             val offset = currentPage * pageSize
             getRadioStation.getStationWithAvailability(offset, pageSize).collect { result ->
-                when(result) {
+                when (result) {
                     is Resource.Success -> {
                         val newStations = result.data ?: emptyList()
                         println("New Stations:: $newStations")
@@ -63,13 +56,17 @@ class RadioStationViewModel @Inject constructor(private val getRadioStation: Get
                             _stations.value = Resource.Error("No more stations available")
                         }
                     }
+
                     is Resource.Loading -> {
                         _stations.value = Resource.Loading
                     }
+
                     is Resource.Error -> {
                         _stations.value = Resource.Error(result.message)
                     }
+
                     is Resource.Initial -> {}
+                    else -> {}
                 }
                 isLoading = false
             }

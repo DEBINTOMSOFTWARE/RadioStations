@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
@@ -13,9 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.radiostations.stations.presentation.screens.RadioStationScreen
 import com.example.radiostations.stations.presentation.screens.StationAvailabilityScreen
 import com.example.radiostations.stations.presentation.viewmodel.RadioStationViewModel
@@ -38,7 +39,6 @@ class MainActivity : ComponentActivity() {
     private val availabilityViewModel by viewModels<StationAvailabilityViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //enableEdgeToEdge()
         setContent {
             RadioStationsTheme {
                 Surface(
@@ -63,14 +63,16 @@ fun AppNavigation(
     radioStationViewModel: RadioStationViewModel,
     availabilityViewModel: StationAvailabilityViewModel,
 
-) {
+    ) {
     NavHost(navController = navController, startDestination = Destination.StationsScreen.route) {
         composable(Destination.StationsScreen.route) {
             RadioStationScreen(radioStationViewModel = radioStationViewModel, navController)
         }
-        composable(Destination.StationAvailabilityScreen.route) {navBackStackEntry ->
+        composable(
+            route = Destination.StationAvailabilityScreen.route,
+            arguments = listOf(navArgument("stationUuid") { type = NavType.StringType })) { navBackStackEntry ->
             val stationUuid = navBackStackEntry.arguments?.getString("stationUuid")
-            if(stationUuid == null) {
+            if (stationUuid == null) {
                 Toast.makeText(
                     LocalContext.current,
                     "Station Id required",
@@ -79,7 +81,7 @@ fun AppNavigation(
             } else {
                 StationAvailabilityScreen(
                     stationUuid = stationUuid,
-                  availabilityViewModel= availabilityViewModel,
+                    availabilityViewModel = availabilityViewModel,
                     navController = navController
                 )
             }

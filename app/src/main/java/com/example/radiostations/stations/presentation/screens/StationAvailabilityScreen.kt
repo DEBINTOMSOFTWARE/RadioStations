@@ -1,8 +1,12 @@
 package com.example.radiostations.stations.presentation.screens
 
+import androidx.activity.viewModels
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -15,7 +19,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,27 +30,33 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.example.radiostations.Destination
+import com.example.radiostations.core.framework.ConnectivityObservable
+import com.example.radiostations.core.presentaion.components.BodyLargeText
 import com.example.radiostations.core.utils.Resource
 import com.example.radiostations.stations.domain.model.StationAvailabilityEntity
 import com.example.radiostations.core.presentaion.components.BodyText
 import com.example.radiostations.core.presentaion.components.HeaderLargeText
 import com.example.radiostations.stations.presentation.viewmodel.StationAvailabilityViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StationAvailabilityScreen(
     stationUuid: String,
     availabilityViewModel: StationAvailabilityViewModel,
-    navController: NavHostController
+    navController: NavHostController,
 ) {
+    println("StationUuid:: $stationUuid")
 
     availabilityViewModel.getStationAvailability(stationUuid)
     val availabilityState = availabilityViewModel.availability.collectAsState().value
+    val networkAvailable =
+        availabilityViewModel.networkAvailable.observe()
+            .collectAsState(ConnectivityObservable.Status.Available)
 
-    if(availabilityState == null) {
+    if (availabilityState == null) {
         navController.navigate(Destination.StationsScreen.route) {
             popUpTo(Destination.StationsScreen.route)
             launchSingleTop = true
@@ -77,7 +86,23 @@ fun StationAvailabilityScreen(
             )
         },
     ) { padding ->
-         StationAvailability(result = availabilityState, paddingValues = padding)
+        if (networkAvailable.value == ConnectivityObservable.Status.Unavailable) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Red),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                BodyLargeText(
+                    text = "Network unavailable",
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        }
+
+        StationAvailability(result = availabilityState, paddingValues = padding)
     }
 }
 
@@ -86,24 +111,32 @@ fun StationAvailability(
     result: Resource<List<StationAvailabilityEntity>>,
     paddingValues: PaddingValues
 ) {
-    when(result) {
+    when (result) {
         is Resource.Success -> {
-            LazyColumn(Modifier.padding(paddingValues)) {
+            LazyColumn(
+                Modifier
+                    .padding(paddingValues)
+                    .semantics {
+                        contentDescription = "Availability List"
+                    }) {
                 items(result.data!!) { stationAvailability ->
                     StationAvailabilityRow(stationAvailability)
                 }
             }
         }
+
         is Resource.Loading -> {
             CircularProgressIndicator(
                 modifier = Modifier.semantics { contentDescription = "Loading Progress" }
             )
         }
+
         is Resource.Error -> {
             BodyText(
                 text = "Error: ${(result).message}",
             )
         }
+
         is Resource.Initial -> {}
     }
 }
@@ -117,12 +150,20 @@ fun StationAvailabilityRow(
             .fillMaxWidth()
             .padding(8.dp)
             .wrapContentHeight()
+            .semantics {
+                role = Role.Button
+                contentDescription = "Station Available ${stationAvailability.name}"
+            }
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
+            println("Name:: ${stationAvailability.name!!}")
             BodyText(text = stationAvailability.name!!)
             Box(Modifier.height(8.dp))
-            if (stationAvailability.ok == 1) BodyText(text = "Online", color = Color.Green) else BodyText(
-                text = "offline" , color = Color.Red
+            if (stationAvailability.ok == 1) BodyText(
+                text = "Online",
+                color = Color.Green
+            ) else BodyText(
+                text = "offline", color = Color.Red
             )
         }
     }

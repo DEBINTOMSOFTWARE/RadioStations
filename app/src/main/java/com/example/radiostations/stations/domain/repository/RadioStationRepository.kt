@@ -6,9 +6,12 @@ import com.example.radiostations.stations.domain.model.StationAvailabilityEntity
 import kotlinx.coroutines.flow.Flow
 
 interface RadioStationRepository {
-  fun getStations(offset:Int, limit: Int): Flow<Resource<List<RadioStationEntity>>>
+    fun getStations(offset: Int, limit: Int): Flow<Resource<List<RadioStationEntity>>>
 
-  fun getStationAvailability(stationUuid: String) : Flow<Resource<List<StationAvailabilityEntity>>>
+    fun getStationAvailability(stationUuid: String): Flow<Resource<List<StationAvailabilityEntity>>>
 
-  fun getStationsWithAvailability(offset: Int, limit: Int): Flow<Resource<List<Pair<RadioStationEntity, List<StationAvailabilityEntity>>>>>
+    fun getStationsWithAvailability(
+        offset: Int,
+        limit: Int
+    ): Flow<Resource<List<Pair<RadioStationEntity, List<StationAvailabilityEntity>>>>>
 }
