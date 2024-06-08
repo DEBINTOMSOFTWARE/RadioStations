@@ -36,8 +36,6 @@ class StationAvailabilityViewModel @Inject constructor(
     }
 
     fun getStationAvailability(stationUuid: String) {
-        println("Station Uuid in ViewModel :: $stationUuid")
-
         _availability.value = Resource.Loading
         viewModelScope.launch(Dispatchers.IO) {
             getRadioStation.getStationAvailability(stationUuid).collect { result ->

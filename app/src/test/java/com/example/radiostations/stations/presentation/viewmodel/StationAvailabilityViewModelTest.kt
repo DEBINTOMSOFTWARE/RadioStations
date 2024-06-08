@@ -1,6 +1,7 @@
 package com.example.radiostations.stations.presentation.viewmodel
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
+import androidx.lifecycle.SavedStateHandle
 import com.example.radiostations.core.framework.ConnectivityMonitor
 import com.example.radiostations.core.utils.Resource
 import com.example.radiostations.stations.domain.model.StationAvailabilityEntity
@@ -33,12 +34,16 @@ class StationAvailabilityViewModelTest {
     private lateinit var getRadioStation: GetRadioStation
     private lateinit var connectivityMonitor: ConnectivityMonitor
     private lateinit var viewModel: StationAvailabilityViewModel
+    private lateinit var savedStateHandle: SavedStateHandle
 
     @Before
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         getRadioStation = mockk()
         connectivityMonitor = mockk()
+        savedStateHandle = SavedStateHandle().apply {
+            set("stationUuid", "stationUuid")
+        }
     }
 
     @Test
@@ -47,7 +52,7 @@ class StationAvailabilityViewModelTest {
             getRadioStation.getStationAvailability("stationUuid")
         } returns flowOf(Resource.Loading)
 
-        viewModel = StationAvailabilityViewModel(getRadioStation, connectivityMonitor)
+        viewModel = StationAvailabilityViewModel(getRadioStation, connectivityMonitor, savedStateHandle)
         viewModel.getStationAvailability("stationUuid")
 
         val initialState = viewModel.availability.value
@@ -75,10 +80,14 @@ class StationAvailabilityViewModelTest {
         coEvery {
             getRadioStation.getStationAvailability("stationUuid")
         } returns flowOf(Resource.Success(mockAvailabilityResponse))
-        viewModel = StationAvailabilityViewModel(getRadioStation, connectivityMonitor)
+
+        savedStateHandle["stationUuid"] = "stationUuid"
+
+        viewModel = StationAvailabilityViewModel(getRadioStation, connectivityMonitor,savedStateHandle)
         viewModel.getStationAvailability("stationUuid")
 
         val state = viewModel.availability.value
+        assertEquals(Resource.Loading, Resource.Loading)
         assertEquals(Resource.Success(mockAvailabilityResponse), state)
     }
 
