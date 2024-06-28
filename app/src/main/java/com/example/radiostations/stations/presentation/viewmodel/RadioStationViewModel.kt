@@ -66,7 +66,6 @@ class RadioStationViewModel @Inject constructor(
                     }
 
                     is Resource.Initial -> {}
-                    else -> {}
                 }
                 isLoading = false
             }

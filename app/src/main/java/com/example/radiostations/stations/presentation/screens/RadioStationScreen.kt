@@ -18,13 +18,11 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.TopAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,11 +38,11 @@ import com.example.radiostations.Destination
 import com.example.radiostations.core.framework.ConnectivityObservable
 import com.example.radiostations.core.presentaion.components.BodyLargeText
 import com.example.radiostations.core.presentaion.components.BodySmallText
+import com.example.radiostations.core.presentaion.components.BodyText
+import com.example.radiostations.core.presentaion.components.HeaderLargeText
 import com.example.radiostations.core.utils.Resource
 import com.example.radiostations.stations.domain.model.RadioStationEntity
 import com.example.radiostations.stations.domain.model.StationAvailabilityEntity
-import com.example.radiostations.core.presentaion.components.BodyText
-import com.example.radiostations.core.presentaion.components.HeaderLargeText
 import com.example.radiostations.stations.presentation.viewmodel.RadioStationViewModel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
