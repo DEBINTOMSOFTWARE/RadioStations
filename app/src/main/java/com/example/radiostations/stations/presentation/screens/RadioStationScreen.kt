@@ -39,6 +39,7 @@ import androidx.navigation.NavHostController
 import com.example.radiostations.Destination
 import com.example.radiostations.core.framework.ConnectivityObservable
 import com.example.radiostations.core.presentaion.components.BodyLargeText
+import com.example.radiostations.core.presentaion.components.BodySmallText
 import com.example.radiostations.core.utils.Resource
 import com.example.radiostations.stations.domain.model.RadioStationEntity
 import com.example.radiostations.stations.domain.model.StationAvailabilityEntity
@@ -102,7 +103,7 @@ fun RadioStationScreen(
                 }
             }
 
-            RadioStationList(stationState, padding, listState, navController)
+            RadioStationList(stationState, padding, listState, navController, radioStationViewModel)
         }
     }
 
@@ -113,7 +114,8 @@ fun RadioStationList(
     result: Resource<List<Pair<RadioStationEntity, List<StationAvailabilityEntity>>>>,
     padding: PaddingValues,
     listState: LazyListState,
-    navController: NavHostController
+    navController: NavHostController,
+    radioStationViewModel: RadioStationViewModel
 ) {
     Box(modifier = Modifier.padding(padding)) {
         when (result) {
@@ -125,7 +127,7 @@ fun RadioStationList(
                     state = listState
                 ) {
                     items(result.data!!) { station ->
-                        RadioStationRow(station, navController)
+                        RadioStationRow(station, navController, radioStationViewModel)
                     }
                     item {
                         if (result.data.isNotEmpty()) {
@@ -156,7 +158,8 @@ fun RadioStationList(
 @Composable
 fun RadioStationRow(
     stationPair: Pair<RadioStationEntity, List<StationAvailabilityEntity>>,
-    navController: NavHostController
+    navController: NavHostController,
+    radioStationViewModel: RadioStationViewModel
 ) {
     val (station, availability) = stationPair
     Card(
@@ -170,6 +173,7 @@ fun RadioStationRow(
                             stationUuid = station.stationuuid
                         )
                     )
+                    radioStationViewModel.setSingleStationAvailability(availability)
                 }
             }
             .semantics {
@@ -181,9 +185,10 @@ fun RadioStationRow(
             BodyText(text = "Station: ${station.name?.trim()}")
             BodyText(text = "Country: ${station.country}")
             BodyText(text = "State: ${station.state}")
-//            BodySmallText(
-//                text = "Available in: ${availability.size} regions",
-//            )
+            BodySmallText(
+                text = "Available in: ${availability.size} regions",
+                color = Color.Magenta
+            )
         }
     }
 }

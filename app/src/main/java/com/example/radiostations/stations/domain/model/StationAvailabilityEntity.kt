@@ -4,4 +4,5 @@ data class StationAvailabilityEntity(
     val description: Any?,
     val name: String?,
     val ok: Int?,
+    //val stationuuid: String?
 )

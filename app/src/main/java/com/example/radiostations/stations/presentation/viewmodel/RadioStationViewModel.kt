@@ -73,6 +73,10 @@ class RadioStationViewModel @Inject constructor(
         }
     }
 
+    fun setSingleStationAvailability(stationAvailability: List<StationAvailabilityEntity>) {
+
+    }
+
     fun loadMoreStations() {
         getStations()
     }

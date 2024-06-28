@@ -40,15 +40,18 @@ import com.example.radiostations.core.utils.Resource
 import com.example.radiostations.stations.domain.model.StationAvailabilityEntity
 import com.example.radiostations.core.presentaion.components.BodyText
 import com.example.radiostations.core.presentaion.components.HeaderLargeText
+import com.example.radiostations.stations.presentation.viewmodel.RadioStationViewModel
 import com.example.radiostations.stations.presentation.viewmodel.StationAvailabilityViewModel
 
 @Composable
 fun StationAvailabilityScreen(
     stationUuid: String,
+    radioStationViewModel: RadioStationViewModel,
     availabilityViewModel: StationAvailabilityViewModel,
     navController: NavHostController,
 ) {
     println("StationUuid:: $stationUuid")
+    //val stationAvailability = radioStationViewModel.singleStationAvailability.collectAsState().value
 
     availabilityViewModel.getStationAvailability(stationUuid)
     val availabilityState = availabilityViewModel.availability.collectAsState().value

@@ -69,3 +69,25 @@ fun BodyText(
         maxLines = 3
     )
 }
+
+@Composable
+fun BodySmallText(
+    text: String,
+    modifier: Modifier = Modifier,
+    textAlign: TextAlign = TextAlign.Start,
+    color: Color = MaterialTheme.colorScheme.surface,
+    fontWeight: FontWeight = FontWeight.Normal,
+    fontSize: Int = 12
+) {
+    Text(
+        text = text,
+        modifier = modifier,
+        color = color,
+        fontSize = fontSize.sp,
+        textAlign = textAlign,
+        fontWeight = fontWeight,
+        lineHeight = 20.sp,
+        overflow = TextOverflow.Ellipsis,
+        maxLines = 3
+    )
+}

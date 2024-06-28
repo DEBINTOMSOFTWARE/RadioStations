@@ -1,5 +1,6 @@
 package com.example.radiostations.stations.data.repository
 
+import androidx.compose.runtime.MutableState
 import coil.network.HttpException
 import com.example.radiostations.core.utils.Resource
 import com.example.radiostations.stations.data.model.RadioStationItem
@@ -11,15 +12,23 @@ import com.example.radiostations.stations.framework.apiservice.ApiService
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.retry
+import kotlinx.coroutines.flow.retryWhen
+import kotlinx.coroutines.flow.toList
 import okio.IOException
 import javax.inject.Inject
 
 class RadioStationRepositoryImpl @Inject constructor(private val apiService: ApiService) :
     RadioStationRepository {
-    private var cachedStations: MutableList<RadioStationEntity> = mutableListOf()
+
+    val stations = MutableStateFlow<List<RadioStationEntity>>(emptyList())
 
     override fun getStations(offset: Int, limit: Int): Flow<Resource<List<RadioStationEntity>>> =
         flow {
@@ -27,7 +36,9 @@ class RadioStationRepositoryImpl @Inject constructor(private val apiService: Api
             try {
                 val response = apiService.getAllStations(offset, limit)
                 val newStations = response.map { station -> station.toRadioStationEntity() }
-                cachedStations.addAll(newStations)
+                if (newStations != null) {
+                    stations.value = newStations
+                }
                 emit(Resource.Success(newStations))
             } catch (e: HttpException) {
                 emit(Resource.Error(e.localizedMessage ?: "An unexpected error occurred"))
@@ -54,12 +65,22 @@ class RadioStationRepositoryImpl @Inject constructor(private val apiService: Api
         return coroutineScope {
             stations.map { station ->
                 async {
-                    val availabilityResource = getStationAvailability(station.stationuuid!!).first()
-                    if (availabilityResource is Resource.Success) {
-                        station to availabilityResource.data.orEmpty()
-                    } else {
-                        station to emptyList()
+                    var result: Pair<RadioStationEntity, List<StationAvailabilityEntity>> = station to emptyList()
+                    getStationAvailability(station.stationuuid!!).collect { availabilityResource ->
+                        when(availabilityResource) {
+                            is Resource.Success -> {
+                                result = station to availabilityResource.data.orEmpty()
+                            }
+                            is Resource.Error -> {
+                                result = station to emptyList()
+                            }
+                            else -> {
+                                result = station to emptyList()
+                            }
+                        }
+
                     }
+                    result
                 }
             }.awaitAll()
         }
@@ -77,6 +98,7 @@ class RadioStationRepositoryImpl @Inject constructor(private val apiService: Api
                         val stations = stationResource.data
                         if (!stations.isNullOrEmpty()) {
                             val combinedList = getAvailabilityForStations(stations)
+                            println("CombinedList:: $combinedList")
                             emit(Resource.Success(combinedList))
                         } else {
                             emit(Resource.Error("No stations found"))
@@ -92,6 +114,7 @@ class RadioStationRepositoryImpl @Inject constructor(private val apiService: Api
             emit(Resource.Error("Failed to load stations with availability: ${e.message}"))
         }
     }
+
 
     private fun RadioStationItem.toRadioStationEntity(): RadioStationEntity {
         return RadioStationEntity(
@@ -110,6 +133,19 @@ class RadioStationRepositoryImpl @Inject constructor(private val apiService: Api
             description = this.description,
         )
     }
+
+//    suspend fun getSingleStationAvailability(stationId: String){
+//        stationsAvailability.collect { availabilities ->
+//            val filteredStations = stations.value.filter {
+//                it.stationuuid == stationId
+//            }
+//            if (filteredStations.isNotEmpty()) {
+//               availabilities.filter { it.stationuuid == stationId }
+//            }
+//        }
+//
+//    }
+
+
+
 }
-
-

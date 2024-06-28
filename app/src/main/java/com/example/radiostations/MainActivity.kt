@@ -81,6 +81,7 @@ fun AppNavigation(
             } else {
                 StationAvailabilityScreen(
                     stationUuid = stationUuid,
+                    radioStationViewModel = radioStationViewModel,
                     availabilityViewModel = availabilityViewModel,
                     navController = navController
                 )

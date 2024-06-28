@@ -2,6 +2,7 @@ package com.example.radiostations.di
 
 import android.content.Context
 import com.example.radiostations.core.framework.ConnectivityMonitor
+import com.example.radiostations.core.framework.RetryInterceptor
 import com.example.radiostations.stations.framework.apiservice.ApiService
 import dagger.Module
 import dagger.Provides
@@ -26,7 +27,7 @@ object NetworkModule {
   @Singleton
   fun provideCertificatePinner(): CertificatePinner =
     CertificatePinner.Builder()
-      .add("de1.api.radio-browser.info", "sha256/+pDuKtY5CXkMe5Yi/Ffp8gn/h4/pSHaTdBpky57QmIY=")
+      .add("de1.api.radio-browser.info", "sha256/q+NG+OcmO0za2bL8uEnd4c1190Uz+gcBD/cvCFAqzKk=")
       .build()
 
 
@@ -57,17 +58,25 @@ object NetworkModule {
 
   @Provides
   @Singleton
+  fun provideRetryInterceptor(): RetryInterceptor {
+    return RetryInterceptor()
+  }
+
+  @Provides
+  @Singleton
   fun provideOkHttpClient(
     certificatePinner: CertificatePinner,
     cache: Cache,
     onlineInterceptor: Interceptor,
-    loggingInterceptor: HttpLoggingInterceptor
+    loggingInterceptor: HttpLoggingInterceptor,
+    retryInterceptor: RetryInterceptor
   ): OkHttpClient =
     OkHttpClient.Builder()
       .cache(cache)
       .certificatePinner(certificatePinner)
       .addNetworkInterceptor(onlineInterceptor)
       .addInterceptor(loggingInterceptor)
+      .addInterceptor(retryInterceptor)
       .build()
 
   @Provides
